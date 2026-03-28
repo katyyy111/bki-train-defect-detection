@@ -3,12 +3,12 @@ import { MapContainer, TileLayer, Marker, Popup, ZoomControl } from 'react-leafl
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-// 1. Zaktualizowane dane
+// 1. Zaktualizowane dane dla 3 konkretnych kategorii
 const MOCK_DATA = [
   {
     id: 'S-101743-A',
     name: 'Anomalia termiczna rozjazdu Rz-12',
-    category: 'Termika',
+    category: 'Wskaźnik temperaturowy', // Nowa kategoria (Czerwony)
     type: 'Termowizja',
     lat: 53.1352, lng: 17.9882,
     description: 'Analiza spektralna wykazała odchylenie temperatury o +24°C względem normy środowiskowej na iglicy rozjazdu. Ryzyko odkształcenia materiału pod wpływem naprężeń termicznych.',
@@ -19,7 +19,7 @@ const MOCK_DATA = [
   {
     id: 'S-101743-B',
     name: 'Osiadanie nasypu (Sekcja 4B)',
-    category: 'Geometria gruntu',
+    category: 'Geometria gruntu', // Nowa kategoria (Fioletowy)
     type: 'Geodezja / InSAR',
     lat: 53.1412, lng: 17.9950,
     description: 'Pomiary satelitarne (Displacement) wykazują liniowy trend osiadania gruntu (-4.2 mm/rok). Parametr RMSE w normie.',
@@ -29,38 +29,27 @@ const MOCK_DATA = [
   },
   {
     id: 'S-101743-C',
-    name: 'Skrajnia pionowa (Naruszenie)',
-    category: 'Skrajnia',
-    type: 'Skaning LiDAR',
+    name: 'Niestabilność hydrologiczna torowiska',
+    category: 'Wilgotność podłoża', // Nowa kategoria (Niebieski)
+    type: 'Czujniki glebowe',
     lat: 53.1200, lng: 17.9600,
-    description: 'Chmura punktów zarejestrowała obiekt (biomasa) wchodzący w strefę krytyczną skrajni budowli w odległości 2.4m od osi toru.',
+    description: 'Sensory wilgotności wskazują na lokalne podtopienie warstwy podtorza w wyniku intensywnych opadów. Prawdopodobieństwo zmniejszenia nośności.',
     severity: 'Krytyczne',
     value: 85,
     images: ['https://images.unsplash.com/photo-1574768393539-71cde628b030?auto=format&fit=crop&q=80&w=600']
-  },
-  {
-    id: 'S-101743-D',
-    name: 'Mikropęknięcie SB-3',
-    category: 'Infrastruktura',
-    type: 'Wizyjny System Defektoskopowy',
-    lat: 53.1250, lng: 18.0150,
-    description: 'Detekcja krawędzi zidentyfikowała powierzchowne pęknięcie podkładu strunobetonowego. Brak naruszenia struktury nośnej.',
-    severity: 'Monitorowane',
-    value: 25,
-    images: ['https://images.unsplash.com/photo-1610486801908-1f1911963bfb?auto=format&fit=crop&q=80&w=600']
   }
 ];
 
-const CATEGORIES = ['Termika', 'Geometria gruntu', 'Skrajnia', 'Infrastruktura'];
+// WYMOGI: Tylko i wyłącznie te 3 kategorie
+const CATEGORIES = ['Wskaźnik temperaturowy', 'Geometria gruntu', 'Wilgotność podłoża'];
 
-// Kolory przypisane bezpośrednio do kategorii (na mapie i w suwakach)
 const CATEGORY_COLORS = {
-  'Wskaźnik temperaturowy': '#d32f2f',         // Czerwony
-  'Geometria gruntu': '#7b1fa2',// Fioletowy
-  'Wilgotność podłoża': '#1976d2',        // NIebieski
+  'Wskaźnik temperaturowy': '#d32f2f', // Czerwony
+  'Geometria gruntu': '#7b1fa2',       // Fioletowy
+  'Wilgotność podłoża': '#1976d2'      // Niebieski
 };
 
-// Funkcja zwracająca kolor na podstawie % prawdopodobieństwa (rangi)
+// Funkcja zwracająca kolor na podstawie % prawdopodobieństwa (rangi) w panelu
 const getSeverityColor = (value) => {
   if (value >= 80) return '#d32f2f'; // Czerwony (Krytyczne)
   if (value >= 50) return '#f57c00'; // Pomarańczowy (Ostrzeżenie)
@@ -68,7 +57,7 @@ const getSeverityColor = (value) => {
 };
 
 const createIcon = (category) => {
-  const color = CATEGORY_COLORS[category];
+  const color = CATEGORY_COLORS[category] || '#000000';
   return L.divIcon({
     className: 'custom-icon',
     html: `<div style="background-color: ${color}; width: 14px; height: 14px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 6px rgba(0,0,0,0.5);"></div>`,
@@ -152,13 +141,13 @@ export default function App() {
           ))}
         </MapContainer>
 
-        {/* NAKŁADKI: Typy Zagrożeń (Interaktywne "suwaki") */}
+        {/* NAKŁADKI: Typy Zagrożeń (Tylko 3 kategorie) */}
         <div style={{
           position: 'absolute', top: '20px', left: '20px', zIndex: 1000,
           backgroundColor: '#ffffff',
           boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
           border: '1px solid #d0d0d0',
-          width: '260px'
+          width: '270px'
         }}>
           <div style={{
             backgroundColor: '#0f204b', color: '#ffffff',
@@ -177,7 +166,8 @@ export default function App() {
                       width: '40px', height: '14px', backgroundColor: '#e0e0e0',
                       borderRadius: '8px', position: 'relative', marginRight: '14px',
                       display: 'flex', alignItems: 'center',
-                      border: '1px solid #ccc'
+                      border: '1px solid #ccc',
+                      flexShrink: 0
                     }}>
                       <div style={{ width: '100%', height: '2px', backgroundColor: '#bdbdbd', position: 'absolute', zIndex: 1 }}></div>
 
@@ -199,7 +189,7 @@ export default function App() {
         </div>
       </div>
 
-      {/* PRAWY PANEL - Szczegóły Zdarzenia */}
+      {/* PRAWY PANEL */}
       <div style={{
         width: '420px',
         background: '#f4f7fb',
@@ -216,7 +206,6 @@ export default function App() {
         <div style={{ padding: '20px', overflowY: 'auto', flex: 1 }}>
           {selectedMarker ? (
             <>
-              {/* Dynamiczny, kolorowy nagłówek na podstawie kategorii */}
               <div style={{
                 backgroundColor: CATEGORY_COLORS[selectedMarker.category],
                 color: '#ffffff', padding: '10px 15px', fontSize: '13px', fontWeight: '600',
@@ -226,7 +215,6 @@ export default function App() {
                 DETEKCJA: {selectedMarker.id}
               </div>
 
-              {/* Karta informacji */}
               <div style={{ backgroundColor: '#ffffff', padding: '15px', borderRadius: '6px', border: '1px solid #e0e0e0', marginBottom: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                   <span style={{ fontSize: '12px', color: '#666', fontWeight: '600' }}>KATEGORIA:</span>
@@ -240,12 +228,7 @@ export default function App() {
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', borderBottom: '1px solid #eee', paddingBottom: '15px' }}>
                   <span style={{ fontSize: '12px', color: '#666', fontWeight: '600' }}>RANG. ZAGROŻENIA:</span>
-                  {/* POKOLOROWANA RANGA ZAGROŻENIA */}
-                  <span style={{
-                    fontSize: '12px',
-                    color: getSeverityColor(selectedMarker.value),
-                    fontWeight: '700'
-                  }}>
+                  <span style={{ fontSize: '12px', color: getSeverityColor(selectedMarker.value), fontWeight: '700' }}>
                     {selectedMarker.value}% ({selectedMarker.severity})
                   </span>
                 </div>
@@ -258,7 +241,6 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Sekcja Statusu / Akcje z kolorowymi przyciskami */}
               <div style={{ backgroundColor: '#ffffff', padding: '15px', borderRadius: '6px', border: '1px solid #e0e0e0', marginBottom: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
                 <div style={{ fontSize: '11px', color: '#666', fontWeight: '600', marginBottom: '10px' }}>STATUS DYSPOZYTORA</div>
 
@@ -278,7 +260,6 @@ export default function App() {
                 )}
 
                 <div style={{ display: 'flex', gap: '8px' }}>
-                  {/* POKOLOROWANE PRZYCISKI AKCJI */}
                   <button onClick={() => handleAction(selectedMarker.id, 'ZWERYFIKOWANE')} style={{ flex: 1, padding: '8px', backgroundColor: '#4caf50', border: '1px solid #388e3c', color: '#ffffff', fontSize: '10px', fontWeight: '600', cursor: 'pointer', borderRadius: '3px', transition: 'opacity 0.2s' }} onMouseOver={e => e.target.style.opacity = 0.9} onMouseOut={e => e.target.style.opacity = 1}>
                     ZWERYFIKOWANE
                   </button>
@@ -291,7 +272,6 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Zdjęcia (Dowód Optyczny - bez denerwującego napisu z pozycją) */}
               <div style={{ backgroundColor: '#ffffff', padding: '15px', borderRadius: '6px', border: '1px solid #e0e0e0', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
                 <div style={{ fontSize: '11px', color: '#666', fontWeight: '600', marginBottom: '12px' }}>DOWÓD OPTYCZNY</div>
                 <div>
@@ -301,7 +281,6 @@ export default function App() {
                         src={imgUrl} alt={`Dowód wizualny ${index}`}
                         style={{ width: '100%', height: 'auto', border: '1px solid #ccc', borderRadius: '4px' }}
                       />
-                      {/* USUNIĘTO PŁYWAJĄCE WSPÓŁRZĘDNE LAT/LNG */}
                     </div>
                   ))}
                 </div>
