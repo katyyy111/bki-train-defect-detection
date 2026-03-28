@@ -14,13 +14,13 @@ import imgDrzewaOdl from './assets/drzewa-odl.png';
 // ==========================================
 const MOCK_DATA = [
   {
-    id: 'S-101743-B', name: 'Osiadanie nasypu', category: 'Geometria gruntu', type: 'Geodezja / InSAR', lat: 53.146411, lng: 18.008221,
+    id: '0', name: 'Osiadanie nasypu', category: 'Geometria gruntu', type: 'Geodezja / InSAR', lat: 53.146411, lng: 18.008221,
     severity: 'Ostrzeżenie', value: 68,
     images: [imgGrunt, imgGruntWykres]
   },
   {
-    id: 'S-101743-C', name: 'Niestabilność hydrologiczna torowiska', category: 'Bezpieczeństwo przydrożne', type: 'Czujniki glebowe', lat: 53.165365, lng: 18.004296,
-    severity: 'Krytyczne', value: 85,
+    id: '1', name: 'Zagrożenia przydrożne', category: 'Bezpieczeństwo przydrożne', type: 'Czujniki glebowe', lat: 53.165365, lng: 18.004296,
+    severity: 'Potencjalne', value: 41,
     images: [imgDrzewa, imgDrzewaOdl]
   }
 ];
@@ -134,9 +134,6 @@ export default function App() {
               eventHandlers={{ click: () => setSelectedMarker(item) }}
             >
               <Popup className="tech-popup">
-                <div style={{ fontFamily: 'monospace', fontSize: '11px', color: '#666', borderBottom: '1px solid #ccc', paddingBottom: '4px', marginBottom: '6px' }}>
-                  ID: {item.id}
-                </div>
                 <strong style={{ fontSize: '12px', color: '#333' }}>{item.name}</strong>
               </Popup>
             </Marker>
@@ -179,7 +176,7 @@ export default function App() {
       }}>
         <div style={{ backgroundColor: '#ffffff', padding: '15px', borderBottom: '1px solid #d0d0d0' }}>
           <div style={{ fontSize: '18px', fontWeight: '400', color: '#0f204b', display: 'flex', alignItems: 'center' }}>
-            <span style={{ fontWeight: '600', marginRight: '8px' }}>INSPECTION</span> ORDER
+            <span style={{ fontWeight: '600', marginRight: '8px' }}>MOŻLIWE ZAGROŻENIA</span>
           </div>
         </div>
 
@@ -187,17 +184,18 @@ export default function App() {
           {selectedMarker ? (
             <>
               <div style={{ backgroundColor: CATEGORY_COLORS[selectedMarker.category], color: '#ffffff', padding: '10px 15px', fontSize: '13px', fontWeight: '600', letterSpacing: '0.5px', marginBottom: '15px', borderRadius: '4px' }}>
-                DETEKCJA: {selectedMarker.id}
+                {selectedMarker.category.toUpperCase()}
               </div>
 
               <div style={{ backgroundColor: '#ffffff', padding: '15px', borderRadius: '6px', border: '1px solid #e0e0e0', marginBottom: '20px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <span style={{ fontSize: '12px', color: '#666', fontWeight: '600' }}>KATEGORIA:</span>
-                  <span style={{ fontSize: '12px', color: CATEGORY_COLORS[selectedMarker.category], fontWeight: '700' }}>{selectedMarker.category.toUpperCase()}</span>
-                </div>
+                {markerStatuses[selectedMarker.id] && (
+                  <div style={{ marginBottom: '15px', padding: '8px 12px', fontSize: '12px', fontWeight: '600', borderRadius: '4px', backgroundColor: '#eee', color: '#333' }}>
+                    STATUS: {markerStatuses[selectedMarker.id]}
+                  </div>
+                )}
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', borderBottom: '1px solid #eee', paddingBottom: '15px' }}>
                   <span style={{ fontSize: '12px', color: '#666', fontWeight: '600' }}>RANG. ZAGROŻENIA:</span>
-                  <span style={{ fontSize: '12px', color: getSeverityColor(selectedMarker.value), fontWeight: '700' }}>{selectedMarker.value}% ({selectedMarker.severity})</span>
+                  <span style={{ fontSize: '16px', color: getSeverityColor(selectedMarker.value), fontWeight: '700' }}>{selectedMarker.value}% ({selectedMarker.severity})</span>
                 </div>
                 <div style={{ fontSize: '16px', fontWeight: '600', color: '#0f204b', marginBottom: '10px' }}>{selectedMarker.name}</div>
                 <div>
@@ -211,11 +209,6 @@ export default function App() {
 
               <div style={{ backgroundColor: '#ffffff', padding: '15px', borderRadius: '6px', border: '1px solid #e0e0e0', marginBottom: '20px' }}>
                 <div style={{ fontSize: '11px', color: '#666', fontWeight: '600', marginBottom: '10px' }}>STATUS DYSPOZYTORA</div>
-                {markerStatuses[selectedMarker.id] && (
-                  <div style={{ marginBottom: '15px', padding: '8px 12px', fontSize: '12px', fontWeight: '600', borderRadius: '4px', backgroundColor: '#eee', color: '#333' }}>
-                    STATUS: {markerStatuses[selectedMarker.id]}
-                  </div>
-                )}
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <button onClick={() => handleAction(selectedMarker.id, 'ZWERYFIKOWANE')} style={{ flex: 1, padding: '8px', backgroundColor: '#4caf50', border: '1px solid #388e3c', color: '#ffffff', fontSize: '10px', fontWeight: '600', cursor: 'pointer', borderRadius: '3px' }}>ZWERYFIKOWANE</button>
                   <button onClick={() => handleAction(selectedMarker.id, 'DO SPRAWDZENIA')} style={{ flex: 1, padding: '8px', backgroundColor: '#ffb300', border: '1px solid #f39c12', color: '#ffffff', fontSize: '10px', fontWeight: '600', cursor: 'pointer', borderRadius: '3px' }}>SPRAWDŹ</button>
